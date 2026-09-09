@@ -8,11 +8,18 @@ breaks the signature in every email already sent.
 
 | File | Size | Purpose |
 |---|---|---|
-| `iste-emblem.png` | 230×230 | ISTE crest shown at 115×115 in the signature |
-| `instagram-dm.png` | 88×88 | Instagram icon |
-| `mail-dm.png` | 88×88 | Email icon |
-| `linkedin-dm.png` | 88×88 | LinkedIn icon |
-| `website-dm.png` | 88×88 | Website icon (optional, off by default) |
+| `iste-emblem.png` | 230×230 | ISTE crest |
+| `instagram-dm.png` · `mail-dm.png` · `linkedin-dm.png` · `website-dm.png` | 88×88 | `#3C67C9` set — dual-mode, works on light *and* dark |
+| `instagram-2563eb.png` · `linkedin-2563eb.png` · `website-2563eb.png` | 88×88 | `#2563EB` set — matches the `#2563EB` signature palette, light mode |
+| `instagram-dark.png` · `linkedin-dark.png` · `website-dark.png` | 88×88 | `#93B4FA` set — **dark mode only**, too pale for white (2.07:1) |
+
+### Which set do I use?
+
+- **One set for both modes** → the `-dm` (`#3C67C9`) files. Simplest; works
+  everywhere including Gmail, which deletes style blocks.
+- **Different colour per mode** → pair a light set (`-dm` or `-2563eb`) with
+  the matching `-dark` file and swap them with a media query. See
+  "Swapping icons per colour mode" below.
 
 ## Use them via jsDelivr, not raw GitHub
 
@@ -50,3 +57,33 @@ dark — effectively invisible. Images are never recoloured by a mail client's
 dark mode, so the file itself has to work on both.
 
 If you add an icon, match that spec or it will look wrong next to the others.
+
+## Swapping icons per colour mode
+
+CSS cannot recolour a PNG, so showing a different colour in dark mode needs
+two `<img>` tags with only one visible at a time:
+
+```html
+<img class="ico-lt" src=".../instagram-2563eb.png" alt="Instagram"
+     width="18" height="18" border="0" style="display:block;">
+<!--[if !mso]><!--><img class="ico-dk" src=".../instagram-dark.png"
+     alt="Instagram" width="18" height="18" border="0"
+     style="display:none;"><!--<![endif]-->
+```
+
+```css
+@media (prefers-color-scheme: dark) {
+  .ico-lt { display: none !important; }
+  .ico-dk { display: block !important; }
+}
+```
+
+Three details make this safe:
+
+1. **The dark image is hidden inline** (`style="display:none;"`). Gmail's
+   signature editor deletes style blocks, so the media query disappears and
+   the inline rule survives — you get the light icon only, never both.
+2. **The `<!--[if !mso]>` wrapper** hides the dark image from Outlook's Word
+   engine, which ignores `display:none` and would otherwise show all six.
+3. **Both images keep real `alt` text.** Only one is ever visible, so there
+   is no duplication when a client blocks images.
